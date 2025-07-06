@@ -1,35 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.jsx
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Navbar           from './components/Navbar';
+import RoleSelector     from './components/Auth/RoleSelector';
+import SignUp           from './components/Auth/SignUp';
+import Login            from './components/Auth/Login';
+import QuizForm         from './components/QuizForm';
+import StudentDashboard from './components/StudentDashboard';
+import QuizTake         from './components/QuizTake';
+import QuizResult       from './components/QuizResult';
+import Leaderboard      from './components/Leaderboard';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const isAuth = Boolean(localStorage.getItem('token'));
+  const role   = localStorage.getItem('role'); // should be 'student' or 'teacher'
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+      <Navbar />
+      <div className="container">
+        <Routes>
+          {/* Role picker at root */}
+          <Route path="/"     element={<RoleSelector />} />
+          <Route path="/home" element={<RoleSelector />} />
 
-export default App
+          {/* Sign up / Login with ?role=student|teacher */}
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login"  element={<Login />} />
+
+          {/* Teacher dashboard */}
+          <Route
+            path="/teacher-dashboard"
+            element={
+              isAuth && role === 'teacher'
+                ? <QuizForm />
+                : <Navigate to="/home" replace />
+            }
+          />
+
+          {/* Student dashboard */}
+          <Route
+            path="/dashboard"
+            element={
+              isAuth && role === 'student'
+                ? <StudentDashboard />
+                : <Navigate to="/home" replace />
+            }
+          />
+
+          {/* Student quiz-taking */}
+          <Route
+            path="/take-quiz/:id"
+            element={
+              isAuth && role === 'student'
+                ? <QuizTake />
+                : <Navigate to="/login?role=student" replace />
+            }
+          />
+          <Route
+            path="/result/:id"
+            element={
+              isAuth && role === 'student'
+                ? <QuizResult />
+                : <Navigate to="/login?role=student" replace />
+            }
+          />
+
+          {/* Leaderboard (any logged-in user) */}
+          <Route
+            path="/leaderboard/:id"
+            element={
+              isAuth
+                ? <Leaderboard />
+                : <Navigate to="/login" replace />
+            }
+          />
+
+          {/* Catch-all */}
+          <Route path="*" element={<h1>404: Page Not Found</h1>} />
+        </Routes>
+      </div>
+    </>
+  );
+}
