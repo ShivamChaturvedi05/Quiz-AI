@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api';
-import '../styles/Leaderboard.css';
+import '../styles/Leaderboard.css'; // or QuizResults.css if you prefer
 
-export default function Leaderboard() {
+export default function QuizResults() {   // plural
   const { id } = useParams();
   const [board, setBoard] = useState([]);
 
   useEffect(() => {
-    api.get(`/quizzes/${id}/results`).then(res => setBoard(res.data));
+    api.get(`/quizzes/${id}/results`)
+       .then(res => setBoard(res.data))
+       .catch(console.error);
   }, [id]);
 
   return (
     <div className="leaderboard">
-      <h2>Leaderboard</h2>
+      <h2>Results for Quiz #{id}</h2>
       <table className="leaderboard-table">
         <thead>
           <tr>

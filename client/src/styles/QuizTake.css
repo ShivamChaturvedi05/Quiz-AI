@@ -1,0 +1,90 @@
+/* QuizTake.css */
+
+.quiz-take {
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.quiz-take header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timer {
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: #4f46e5;
+  color: #fff;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+}
+
+.question-card {
+  background: #fff;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 0.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.question-number {
+  font-weight: 600;
+  color: #555;
+}
+
+.question-text {
+  margin: 0.5rem 0 1rem;
+}
+
+.options-list {
+  list-style: none;
+  padding: 0;
+}
+
+.option {
+  display: block;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.option:hover {
+  border-color: #4f46e5;
+}
+
+.option.selected {
+  background: #eef2ff;
+  border-color: #4f46e5;
+}
+
+.quiz-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #4f46e5;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

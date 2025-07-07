@@ -1,73 +1,72 @@
-/* StudentDashboard.css */
-
-.student-dashboard {
-  padding: 2rem;
+.dashboard {
+  padding: 30px;
+  background: #f4f6f8;
+  min-height: 100vh;
 }
 
-.student-dashboard h2 {
-  font-size: 1.8rem;
-  margin: 1.5rem 0 1rem;
+.dashboard-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 25px 30px;
+  margin: 25px auto;
+  max-width: 800px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
 
-.status-msg {
-  color: #555;
-  font-size: 1.1rem;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.dashboard-section h2 {
+  margin-bottom: 18px;
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 600;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 8px;
 }
 
 .quiz-card {
-  background: #fff;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: transform 0.2s ease-in-out;
+  background: #f9fafb;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 15px;
 }
 
-.quiz-card:hover {
-  transform: translateY(-3px);
+.quiz-info {
+  flex-grow: 1;
 }
 
-.quiz-card h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.2rem;
+.quiz-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 
-.quiz-card p {
-  margin: 0.2rem 0;
+.quiz-meta {
+  font-size: 14px;
+  color: #666;
 }
 
-.primary-btn,
-.secondary-btn {
+.btn {
+  padding: 8px 16px;
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 5px;
-  font-weight: bold;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.primary-btn {
-  background-color: #4f46e5;
+.btn-primary {
+  background-color: #6c63ff;
   color: #fff;
 }
 
-.primary-btn:hover {
-  background-color: #4338ca;
+.btn-ghost {
+  background-color: transparent;
+  color: #6c63ff;
+  border: 1px solid #6c63ff;
 }
 
-.secondary-btn {
-  background-color: #e5e7eb;
-  color: #111;
-}
-
-.secondary-btn:hover {
-  background-color: #d4d4d4;
+.empty-text {
+  font-style: italic;
+  color: #888;
 }

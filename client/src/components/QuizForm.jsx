@@ -1,47 +1,44 @@
-// src/components/QuizForm.jsx
 import { useState } from 'react';
 import api from '../api';
-
 export default function QuizForm() {
-  const [form, setForm] = useState({
-    title: '', topic: '', description: '', totalQuestions: 5, difficulty: 'Easy'
+  const [form,set]=useState({
+    title:'',topic:'',description:'',totalQuestions:5,difficulty:'Easy',timerMinutes:30
   });
-  const [msg, setMsg] = useState('');
-
-  const handleChange = e =>
-    setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    const res = await api.post('/quizzes', form);
+  const [msg,setMsg]=useState('');
+  const handle=e=>set({...form,[e.target.name]:e.target.value});
+  const submit=async e=>{e.preventDefault();
+    const res = await api.post('/quizzes', {
+      ...form,
+      timerMinutes: Number(form.timerMinutes)
+    });
     setMsg(`Quiz created! ID: ${res.data.quizId}`);
   };
-
   return (
     <div className="card">
       <h2>Create Quiz</h2>
       {msg && <p className="success">{msg}</p>}
-      <form onSubmit={handleSubmit}>
-        {['title','topic','description'].map(f => (
+      <form onSubmit={submit}>
+        {['title','topic','description'].map(f=>(
           <div className="form-group" key={f}>
-            <label>{f.charAt(0).toUpperCase()+f.slice(1)}</label>
-            <input name={f} value={form[f]} onChange={handleChange} required />
+            <label>{f}</label>
+            <input name={f} value={form[f]} onChange={handle} required/>
           </div>
         ))}
         <div className="form-group">
           <label>Number of Questions</label>
-          <input
-            type="number" name="totalQuestions" min="1"
-            value={form.totalQuestions} onChange={handleChange}
-          />
+          <input type="number" name="totalQuestions" min="1" value={form.totalQuestions} onChange={handle}/>
         </div>
         <div className="form-group">
           <label>Difficulty</label>
-          <select name="difficulty" value={form.difficulty} onChange={handleChange}>
-            {['Easy','Medium','Hard'].map(d => <option key={d}>{d}</option>)}
+          <select name="difficulty" value={form.difficulty} onChange={handle}>
+            {['Easy','Medium','Hard'].map(d=> <option key={d}>{d}</option>)}
           </select>
         </div>
-        <button className="btn btn-primary" type="submit">Generate via AI</button>
+        <div className="form-group">
+          <label>Timer (minutes)</label>
+          <input type="number" name="timerMinutes" min="1" value={form.timerMinutes} onChange={handle}/>
+        </div>
+        <button className="btn btn-primary">Generate via AI</button>
       </form>
     </div>
   );

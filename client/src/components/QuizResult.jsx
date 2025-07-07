@@ -1,13 +1,17 @@
-// src/components/QuizResult.jsx
 import { useLocation, Link } from 'react-router-dom';
+import '../styles/QuizResult.css';
 
-export default function QuizResult() {
+export default function QuizResult() {     // singular
   const { state } = useLocation();
   return (
     <div className="card">
       <h2>Your Score</h2>
-      <p>{state.score} / {state.total}</p>
-      <Link to={`/leaderboard/${state.quizId}`}><button className="btn-ghost">View Leaderboard</button></Link>
+      <p className="result-score">
+        {state.score} / {state.total}
+      </p>
+      <Link to={`/leaderboard/${state.quizId}`}>
+        <button className="btn btn-ghost">View Leaderboard</button>
+      </Link>
     </div>
   );
 }

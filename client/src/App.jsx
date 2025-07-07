@@ -1,59 +1,93 @@
-// src/App.jsx
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Navbar           from './components/Navbar';
-import RoleSelector     from './components/Auth/RoleSelector';
-import SignUp           from './components/Auth/SignUp';
-import Login            from './components/Auth/Login';
-import QuizForm         from './components/QuizForm';
+import Navbar from './components/Navbar';
+import RoleSelector from './components/Auth/RoleSelector';
+import SignUp from './components/Auth/SignUp';
+import Login from './components/Auth/Login';
+import TeacherDashboard from './components/TeacherDashboard';
+import QuizForm from './components/QuizForm';
+import QuizResults from './components/QuizResults';
 import StudentDashboard from './components/StudentDashboard';
-import QuizTake         from './components/QuizTake';
-import QuizResult       from './components/QuizResult';
-import Leaderboard      from './components/Leaderboard';
+import QuizTake from './components/QuizTake';
+import QuizResult from './components/QuizResult';
+import Leaderboard from './components/Leaderboard';
 
 export default function App() {
-  const isAuth = Boolean(localStorage.getItem('token'));
-  const role   = localStorage.getItem('role'); // should be 'student' or 'teacher'
+  const [isAuth, setIsAuth] = useState(false);
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      const storedRole = localStorage.getItem('role');
+      setIsAuth(!!token);
+      setRole(storedRole?.toLowerCase());
+    };
+
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
 
   return (
     <>
       <Navbar />
       <div className="container">
         <Routes>
-          {/* Role picker at root */}
-          <Route path="/"     element={<RoleSelector />} />
-          <Route path="/home" element={<RoleSelector />} />
-
-          {/* Sign up / Login with ?role=student|teacher */}
+          <Route
+            path="/"
+            element={
+              isAuth
+                ? <Navigate to={role === 'teacher' ? '/teacher-dashboard' : '/dashboard'} />
+                : <RoleSelector />
+            }
+          />
+          <Route path="/home" element={<Navigate to="/" />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/login"  element={<Login />} />
+          <Route path="/login" element={<Login />} />
 
-          {/* Teacher dashboard */}
+          {/* Teacher Routes */}
           <Route
             path="/teacher-dashboard"
             element={
               isAuth && role === 'teacher'
+                ? <TeacherDashboard />
+                : <Navigate to="/" replace />
+            }
+          />
+          <Route
+            path="/create-quiz"
+            element={
+              isAuth && role === 'teacher'
                 ? <QuizForm />
-                : <Navigate to="/home" replace />
+                : <Navigate to="/" replace />
+            }
+          />
+          <Route
+            path="/quiz/:id/results"
+            element={
+              isAuth && role === 'teacher'
+                ? <QuizResults />
+                : <Navigate to="/" replace />
             }
           />
 
-          {/* Student dashboard */}
+          {/* Student Routes */}
           <Route
             path="/dashboard"
             element={
               isAuth && role === 'student'
                 ? <StudentDashboard />
-                : <Navigate to="/home" replace />
+                : <Navigate to="/" replace />
             }
           />
-
-          {/* Student quiz-taking */}
           <Route
             path="/take-quiz/:id"
             element={
               isAuth && role === 'student'
                 ? <QuizTake />
-                : <Navigate to="/login?role=student" replace />
+                : <Navigate to="/" replace />
             }
           />
           <Route
@@ -61,11 +95,11 @@ export default function App() {
             element={
               isAuth && role === 'student'
                 ? <QuizResult />
-                : <Navigate to="/login?role=student" replace />
+                : <Navigate to="/" replace />
             }
           />
 
-          {/* Leaderboard (any logged-in user) */}
+          {/* Shared */}
           <Route
             path="/leaderboard/:id"
             element={
@@ -75,7 +109,6 @@ export default function App() {
             }
           />
 
-          {/* Catch-all */}
           <Route path="*" element={<h1>404: Page Not Found</h1>} />
         </Routes>
       </div>

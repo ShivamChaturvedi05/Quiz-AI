@@ -1,79 +1,66 @@
-// src/components/StudentDashboard.jsx
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import api from '../api';
 import '../styles/StudentDashboard.css';
 
 export default function StudentDashboard() {
-  const [quizzes, setQuizzes] = useState([]);
-  const [results, setResults] = useState([]);
-  const navigate = useNavigate();
+  const [pending, setPending] = useState([]);
+  const [completed, setCompleted] = useState([]);
+
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    axios
-      .get('http://localhost:5000/api/quizzes/student', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setQuizzes(res.data.quizzes);
-        setResults(res.data.results);
-      })
-      .catch((err) => console.error(err));
-  }, []);
-
-  const completedQuizIds = results.map((r) => r.quiz_id);
-  const pending = quizzes.filter((q) => !completedQuizIds.includes(q.id));
-  const completed = quizzes.filter((q) => completedQuizIds.includes(q.id));
+    async function fetchData() {
+      try {
+        const res = await api.get(`/students/${userId}/quizzes`);
+        setPending(res.data.pending);
+        setCompleted(res.data.completed);
+      } catch (err) {
+        console.error('Failed to fetch quizzes:', err);
+      }
+    }
+    fetchData();
+  }, [userId]);
 
   return (
-    <div className="student-dashboard">
-      <h2>📚 Pending Quizzes</h2>
-      {pending.length === 0 ? (
-        <p className="status-msg">✅ All quizzes completed!</p>
-      ) : (
-        <ul>
-          {pending.map((quiz) => (
-            <li key={quiz.id} className="quiz-card">
-              <div>
-                <h3>{quiz.title}</h3>
-                <p>Topic: {quiz.topic}</p>
-                <p>Difficulty: {quiz.difficulty}</p>
+    <div className="dashboard">
+      <div className="dashboard-section">
+        <h2>Pending Quizzes</h2>
+        {pending.length > 0 ? (
+          pending.map(q => (
+            <div className="quiz-card" key={q.id}>
+              <div className="quiz-info">
+                <p className="quiz-title">{q.title}</p>
+                <p className="quiz-meta">Topic: {q.topic}</p>
               </div>
-              <button
-                className="primary-btn"
-                onClick={() => navigate(`/take-quiz/${quiz.id}`)}
-              >
-                Take Quiz →
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+              <Link to={`/take-quiz/${q.id}`}>
+                <button className="btn btn-primary">Start Quiz</button>
+              </Link>
+            </div>
+          ))
+        ) : (
+          <p className="empty-text">You're all caught up! 🎉</p>
+        )}
+      </div>
 
-      <h2>🏁 Completed Quizzes</h2>
-      {completed.length === 0 ? (
-        <p className="status-msg">🚫 None yet!</p>
-      ) : (
-        <ul>
-          {completed.map((quiz) => (
-            <li key={quiz.id} className="quiz-card">
-              <div>
-                <h3>{quiz.title}</h3>
-                <p>Topic: {quiz.topic}</p>
-                <p>Difficulty: {quiz.difficulty}</p>
+      <div className="dashboard-section">
+        <h2>Completed Quizzes</h2>
+        {completed.length > 0 ? (
+          completed.map(r => (
+            <div className="quiz-card" key={r.id}>
+              <div className="quiz-info">
+                <p className="quiz-title">{r.title}</p>
+                <p className="quiz-meta">Score: {r.score}</p>
               </div>
-              <button
-                className="secondary-btn"
-                onClick={() => navigate(`/result/${quiz.id}`)}
-              >
-                View Result 📊
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+              <Link to={`/result/${r.id}`}>
+                <button className="btn btn-ghost">View Result</button>
+              </Link>
+            </div>
+          ))
+        ) : (
+          <p className="empty-text">You haven’t completed any quizzes yet.</p>
+        )}
+      </div>
     </div>
   );
 }
