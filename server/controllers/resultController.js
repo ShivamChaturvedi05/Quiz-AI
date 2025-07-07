@@ -6,23 +6,23 @@ async function submitQuiz(req, res, next) {
   try {
     const studentId = req.user.id;
     const { quizId } = req.params;
-    const { answers } = req.body; // [{ questionId, answer }, ...]
-    // Fetch correct answers
+    const { answers } = req.body; // [{questionId, answer},...]
+    // fetch correct answers
     const qRes = await db.query(
-      `SELECT id, correct_answer FROM questions WHERE quiz_id=$1`,
+      'SELECT id, correct_answer FROM questions WHERE quiz_id=$1',
       [quizId]
     );
-    const correctMap = new Map(qRes.rows.map(r => [r.id, r.correct_answer]));
+    const correctMap = Object.fromEntries(qRes.rows.map(r => [r.id, r.correct_answer]));
     let score = 0;
-    for (const { questionId, answer } of answers) {
-      if (correctMap.get(questionId) === answer) score++;
+    for (let { questionId, answer } of answers) {
+      if (correctMap[questionId] === answer) score++;
     }
-    // Upsert result
+    // upsert result
     await db.query(
-      `INSERT INTO results (student_id, quiz_id, score)
-       VALUES ($1,$2,$3)
-       ON CONFLICT (student_id,quiz_id)
-       DO UPDATE SET score=EXCLUDED.score, submitted_at=NOW()`,
+      `INSERT INTO results(student_id, quiz_id, score)
+       VALUES($1,$2,$3)
+       ON CONFLICT (student_id,quiz_id) DO UPDATE
+         SET score=EXCLUDED.score, submitted_at=NOW()`,
       [studentId, quizId, score]
     );
     res.json({ score });
@@ -32,11 +32,11 @@ async function submitQuiz(req, res, next) {
 }
 
 // GET /api/results?studentId=…
-async function getResults(req, res, next) {
+async function listStudentResults(req, res, next) {
   try {
     const studentId = req.user.id;
     const rows = await db.query(
-      `SELECT quiz_id, score, submitted_at FROM results WHERE student_id=$1`,
+      'SELECT quiz_id, score, submitted_at FROM results WHERE student_id=$1',
       [studentId]
     );
     res.json(rows.rows);
@@ -48,7 +48,7 @@ async function getResults(req, res, next) {
 // GET /api/results/leaderboard/:quizId
 async function getLeaderboard(req, res, next) {
   try {
-    const { quizId } = req.params;
+    const quizId = req.params.quizId;
     const rows = await db.query(
       `SELECT s.name, s.enrollment_no, r.score
        FROM results r
@@ -64,4 +64,4 @@ async function getLeaderboard(req, res, next) {
   }
 }
 
-module.exports = { submitQuiz, getResults, getLeaderboard };
+module.exports = { submitQuiz, listStudentResults, getLeaderboard };

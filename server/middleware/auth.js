@@ -8,11 +8,10 @@ function authenticate(req, res, next) {
   }
   const token = auth.slice(7);
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { id, role }
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid token' });
+  } catch {
+    res.status(401).json({ message: 'Invalid token' });
   }
 }
 

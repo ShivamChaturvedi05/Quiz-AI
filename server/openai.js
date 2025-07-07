@@ -1,15 +1,9 @@
 // server/openai.js
-const OpenAI = require("openai");
-
-// Instantiate the client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const OpenAI = require('openai');
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
- * Generate an array of MCQs via OpenAI
- * @param {{ topic: string, totalQuestions: number, difficulty: string }} params
- * @returns {Promise<Array<{ question: string, options: string[], answer: string }>>}
+ * @param {{ topic: string, totalQuestions: number, difficulty: string }} opts
  */
 async function generateMCQs({ topic, totalQuestions, difficulty }) {
   const prompt = `
@@ -19,18 +13,16 @@ Respond with a JSON array like:
   { "question": "…", "options": ["A","B","C","D"], "answer": "B" },
   …
 ]
-  `.trim();
+`.trim();
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
+  const resp = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: prompt }],
     temperature: 0.7,
     max_tokens: 800
   });
 
-  const text = response.choices[0].message.content;
-  // Parse the JSON array from the model’s reply
-  return JSON.parse(text);
+  return JSON.parse(resp.choices[0].message.content);
 }
 
 module.exports = { generateMCQs };
