@@ -9,14 +9,22 @@ export default function QuizForm() {
     description: '',
     totalQuestions: 5,
     difficulty: 'Medium',
-    timerMinutes: 30,
+    timerMinutes: 30,      // controlled in minutes
   });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // ensure numeric fields stay numbers
+    setForm({
+      ...form,
+      [name]:
+        name === 'totalQuestions' || name === 'timerMinutes'
+          ? Number(value)
+          : value
+    });
   };
 
   const handleSubmit = async e => {
@@ -30,14 +38,14 @@ export default function QuizForm() {
         title: form.title,
         topic: form.topic,
         description: form.description,
-        totalQuestions: Number(form.totalQuestions),
+        totalQuestions: form.totalQuestions,
         difficulty: form.difficulty,
-        timerSeconds: Number(form.timerMinutes) * 60,
+        timerMinutes: form.timerMinutes   // ← send minutes, not seconds
       });
 
       setSuccess(`Quiz created! ID: ${res.data.quizId}`);
+      // optionally reset form here
     } catch (err) {
-      // handle rate limit
       if (err.response?.status === 429) {
         setError('Rate limit exceeded. Please wait a minute and try again.');
       } else {
@@ -136,5 +144,5 @@ export default function QuizForm() {
         </button>
       </form>
     </div>
-  );
+);
 }
