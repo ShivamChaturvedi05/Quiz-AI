@@ -29,12 +29,17 @@ export default function QuizTake() {
   const [current, setCurrent] = useState(0);
   const timerRef = useRef(0);
 
-  // fetch quiz
+  // ─── Fetch quiz & set timer ───────────────────────────────────
   useEffect(() => {
     api.get(`/quizzes/${id}`)
       .then(res => {
-        setQuiz(res.data);
-        timerRef.current = res.data.timer_seconds ?? 30 * 60;
+        const data = res.data;
+        setQuiz(data);
+        // use stored timerMinutes → seconds, fallback only if missing
+        timerRef.current =
+          typeof data.timerMinutes === 'number'
+            ? data.timerMinutes * 60
+            : 30 * 60;
       })
       .catch(err => {
         console.error('Failed to load quiz:', err);
@@ -42,12 +47,12 @@ export default function QuizTake() {
       });
   }, [id]);
 
-  // record letter selection
+  // ─── Record a letter answer ──────────────────────────────────
   const select = (qid, letter) => {
     setAnswers(prev => ({ ...prev, [qid]: letter }));
   };
 
-  // submit
+  // ─── Submit answers & navigate to result ─────────────────────
   const submitQuiz = async () => {
     const payload = Object.entries(answers).map(([questionId, letter]) => ({
       questionId: Number(questionId),
@@ -57,7 +62,11 @@ export default function QuizTake() {
     try {
       const { data } = await api.post(`/results/${id}/submit`, { answers: payload });
       navigate(`/result/${id}`, {
-        state: { score: data.score, total: quiz.questions.length, quizId: id }
+        state: {
+          score: data.score,
+          total: quiz.questions.length,
+          quizId: id
+        }
       });
     } catch (err) {
       console.error('Submit quiz error:', err);
@@ -91,8 +100,7 @@ export default function QuizTake() {
 
         <ul className="options-list">
           {question.options.map((opt, idx) => {
-            // calculate letter: 0→'a', 1→'b', etc.
-            const letter = String.fromCharCode(97 + idx);
+            const letter = String.fromCharCode(97 + idx); // 0→a,1→b,2→c,3→d
             return (
               <li key={letter}>
                 <label className={answers[question.id] === letter ? 'option selected' : 'option'}>

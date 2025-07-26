@@ -9,7 +9,7 @@ export default function QuizForm() {
     description: '',
     totalQuestions: 5,
     difficulty: 'Medium',
-    timerMinutes: 30,      // controlled in minutes
+    timerMinutes: 30,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
@@ -17,7 +17,6 @@ export default function QuizForm() {
 
   const handleChange = e => {
     const { name, value } = e.target;
-    // ensure numeric fields stay numbers
     setForm({
       ...form,
       [name]:
@@ -34,17 +33,21 @@ export default function QuizForm() {
     setLoading(true);
 
     try {
+      // convert minutes to seconds
+      const timerSeconds = form.timerMinutes * 60;
+
       const res = await api.post('/quizzes', {
         title: form.title,
         topic: form.topic,
         description: form.description,
         totalQuestions: form.totalQuestions,
         difficulty: form.difficulty,
-        timerMinutes: form.timerMinutes   // ← send minutes, not seconds
+        timerSeconds   // send seconds, not minutes
       });
 
-      setSuccess(`Quiz created! ID: ${res.data.quizId}`);
-      // optionally reset form here
+      // adjust based on your API response shape:
+      const quizId = res.data.quiz?.id ?? res.data.quizId;
+      setSuccess(`Quiz created! ID: ${quizId}`);
     } catch (err) {
       if (err.response?.status === 429) {
         setError('Rate limit exceeded. Please wait a minute and try again.');
@@ -144,5 +147,5 @@ export default function QuizForm() {
         </button>
       </form>
     </div>
-);
+  );
 }
