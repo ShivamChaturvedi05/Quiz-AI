@@ -1,67 +1,115 @@
-// server/controllers/resultController.js
 const db = require('../db');
 
-// POST /api/results/:quizId/submit
+/**
+ * POST /api/results/:quizId/submit
+ * Body: { answers: [{ questionId, answer }, ...] }
+ */
 async function submitQuiz(req, res, next) {
+  const studentId = req.user.id;
+  const quizId = parseInt(req.params.quizId, 10);
+  const { answers } = req.body;
+
   try {
-    const studentId = req.user.id;
-    const { quizId } = req.params;
-    const { answers } = req.body; // [{questionId, answer},...]
-    // fetch correct answers
+    // 1️⃣ Fetch correct answers from DB
     const qRes = await db.query(
-      'SELECT id, correct_answer FROM questions WHERE quiz_id=$1',
+      `SELECT id, correct_answer 
+         FROM questions 
+        WHERE quiz_id = $1`,
       [quizId]
     );
-    const correctMap = Object.fromEntries(qRes.rows.map(r => [r.id, r.correct_answer]));
+
+    // Build map of question ID to normalized correct answer
+    const correctMap = Object.fromEntries(
+      qRes.rows.map(row => [row.id, row.correct_answer?.trim().toLowerCase()])
+    );
+
+    // 👇 Normalization function to safely compare strings
+    const normalize = str =>
+    String(str || '')
+      .normalize('NFKC')
+      .replace(/[^\w\s]/g, '') // remove punctuation
+      .trim()
+      .toLowerCase();
+
+
     let score = 0;
-    for (let { questionId, answer } of answers) {
-      if (correctMap[questionId] === answer) score++;
+    for (const { questionId, answer } of answers) {
+      const correct = correctMap[questionId];
+      if (normalize(correct) === normalize(answer)) {
+        score++;
+      } else {
+        console.log(`Mismatch for Q${questionId}: Expected "${correct}", Got "${answer}"`);
+      }
     }
-    // upsert result
+
+
+
+    // 3️⃣ Upsert result into results table
     await db.query(
-      `INSERT INTO results(student_id, quiz_id, score)
-       VALUES($1,$2,$3)
-       ON CONFLICT (student_id,quiz_id) DO UPDATE
-         SET score=EXCLUDED.score, submitted_at=NOW()`,
+      `INSERT INTO results (student_id, quiz_id, score, submitted_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (student_id, quiz_id)
+       DO UPDATE SET 
+         score = EXCLUDED.score,
+         submitted_at = NOW()`,
       [studentId, quizId, score]
     );
+
+    // 4️⃣ Respond with the score
     res.json({ score });
   } catch (err) {
+    console.error('❌ Error submitting quiz:', err);
     next(err);
   }
 }
 
-// GET /api/results?studentId=…
+/**
+ * GET /api/results/student
+ * Returns: [{ quiz_id, score, submitted_at }]
+ */
 async function listStudentResults(req, res, next) {
+  const studentId = req.user.id;
   try {
-    const studentId = req.user.id;
-    const rows = await db.query(
-      'SELECT quiz_id, score, submitted_at FROM results WHERE student_id=$1',
+    const dbRes = await db.query(
+      `SELECT quiz_id, score, submitted_at 
+         FROM results 
+        WHERE student_id = $1
+        ORDER BY submitted_at DESC`,
       [studentId]
     );
-    res.json(rows.rows);
+    res.json(dbRes.rows);
   } catch (err) {
     next(err);
   }
 }
 
-// GET /api/results/leaderboard/:quizId
+/**
+ * GET /api/results/leaderboard/:quizId
+ * Returns top scores for a quiz
+ */
 async function getLeaderboard(req, res, next) {
+  const quizId = parseInt(req.params.quizId, 10);
   try {
-    const quizId = req.params.quizId;
-    const rows = await db.query(
-      `SELECT s.name, s.enrollment_no, r.score
-       FROM results r
-       JOIN students s ON s.id = r.student_id
-       WHERE r.quiz_id=$1
-       ORDER BY r.score DESC
-       LIMIT 10`,
+    const dbRes = await db.query(
+      `SELECT s.name,
+              s.enrollment_no AS enrollmentNo,
+              r.score,
+              r.submitted_at AS submittedAt
+         FROM results r
+         JOIN students s ON s.id = r.student_id
+        WHERE r.quiz_id = $1
+        ORDER BY r.score DESC, r.submitted_at
+        LIMIT 10`,
       [quizId]
     );
-    res.json(rows.rows);
+    res.json(dbRes.rows);
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { submitQuiz, listStudentResults, getLeaderboard };
+module.exports = {
+  submitQuiz,
+  listStudentResults,
+  getLeaderboard,
+};
