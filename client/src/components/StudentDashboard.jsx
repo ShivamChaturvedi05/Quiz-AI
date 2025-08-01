@@ -69,7 +69,7 @@ export default function StudentDashboard() {
                   })}
                 </p>
               </div>
-              <Link to={`/result/${q.id}`}>
+              <Link to={`/leaderboard/${q.id}`}>
                 <button className="btn btn-ghost">View Result</button>
               </Link>
             </div>

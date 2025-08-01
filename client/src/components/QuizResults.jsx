@@ -1,17 +1,23 @@
+// src/components/QuizResults.jsx
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import api from '../api';
-import '../styles/Leaderboard.css'; // or QuizResults.css if you prefer
+import { useParams }           from 'react-router-dom';
+import api                     from '../api';
+import '../styles/Leaderboard.css';
 
-export default function QuizResults() {   // plural
-  const { id } = useParams();
-  const [board, setBoard] = useState([]);
+export default function QuizResults() {
+  const { id } = useParams();     // quizId
+  const [rows, setRows] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     api.get(`/quizzes/${id}/results`)
-       .then(res => setBoard(res.data))
-       .catch(console.error);
+       .then(res => setRows(res.data))
+       .catch(() => setError('Unable to load results'));
   }, [id]);
+
+  if (error)     return <p className="error">{error}</p>;
+  if (rows === null) return <p>Loading results…</p>;
+  if (!rows.length)  return <p>No submissions yet.</p>;
 
   return (
     <div className="leaderboard">
@@ -19,23 +25,27 @@ export default function QuizResults() {   // plural
       <table className="leaderboard-table">
         <thead>
           <tr>
-            <th>Rank</th>
-            <th>Name</th>
-            <th>Enrollment No</th>
-            <th>Score</th>
-            <th>Submitted At</th>
+            <th>Rank</th><th>Name</th><th>Enrollment No</th>
+            <th>Score</th><th>Submitted At</th>
           </tr>
         </thead>
         <tbody>
-          {board.map((r, i) => (
-            <tr key={`${r.enrollment_no}-${i}`}>
-              <td>{i + 1}</td>
-              <td>{r.name}</td>
-              <td>{r.enrollment_no}</td>
-              <td>{r.score}</td>
-              <td>{new Date(r.submitted_at).toLocaleString()}</td>
-            </tr>
-          ))}
+          {rows.map((r, i) => {
+            const dt   = new Date(r.submittedAt);
+            const date = dt.toLocaleDateString();
+            const time = dt.toLocaleTimeString(undefined, {
+              hour: '2-digit', minute: '2-digit'
+            });
+            return (
+              <tr key={`${r.enrollmentNo}-${i}`}>
+                <td>{i+1}</td>
+                <td>{r.name}</td>
+                <td>{r.enrollmentNo}</td>
+                <td>{r.score}</td>
+                <td>{date} {time}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

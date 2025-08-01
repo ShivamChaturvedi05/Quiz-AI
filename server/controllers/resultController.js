@@ -102,6 +102,7 @@ async function getLeaderboard(req, res, next) {
         LIMIT 10`,
       [quizId]
     );
+     //console.log('📊 Leaderboard results:', dbRes.rows);
     res.json(dbRes.rows);
   } catch (err) {
     next(err);
