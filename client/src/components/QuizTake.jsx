@@ -61,13 +61,7 @@ export default function QuizTake() {
 
     try {
       const { data } = await api.post(`/results/${id}/submit`, { answers: payload });
-      navigate(`/result/${id}`, {
-        state: {
-          score: data.score,
-          total: quiz.questions.length,
-          quizId: id
-        }
-      });
+      navigate(`/leaderboard/${id}`, { replace: true });
     } catch (err) {
       console.error('Submit quiz error:', err);
       alert('Failed to submit quiz. Please try again.');

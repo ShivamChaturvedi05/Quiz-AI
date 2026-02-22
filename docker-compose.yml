@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. The Database (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: quiz_db_container
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: quizdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. The Backend (Node API)
+  server:
+    build: ./server
+    container_name: quiz_server_container
+    ports:
+      - "4000:4000"
+
+    env_file:
+      - ./server/.env
+
+    environment:
+      - PORT=4000
+      # This connects to the 'db' service defined above
+      - DATABASE_URL=postgres://myuser:mypassword@db:5432/quizdb
+    depends_on:
+      - db
+
+  # 3. The Frontend (React/Vite)
+  client:
+    build: ./client
+    container_name: quiz_client_container
+    ports:
+      - "5173:5173"
+    environment:
+      # This tells React where the backend lives (on your computer)
+      - VITE_API_URL=http://localhost:4000
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:

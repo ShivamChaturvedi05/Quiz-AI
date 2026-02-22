@@ -42,7 +42,7 @@ export default function QuizForm() {
         description: form.description,
         totalQuestions: form.totalQuestions,
         difficulty: form.difficulty,
-        timerSeconds   // send seconds, not minutes
+        timerMinutes: form.timerMinutes   // send seconds, not minutes
       });
 
       // adjust based on your API response shape:
